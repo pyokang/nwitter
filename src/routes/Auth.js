@@ -1,71 +1,35 @@
-import React, { useState } from "react";
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTwitter,
+  faGoogle,
+  faGithub,
+} from "@fortawesome/free-brands-svg-icons";
 import { authService, firebaseInstance } from "../fbase";
+import AuthForm from "../components/AuthForm";
 
 const Auth = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [newAccount, setNewAccount] = useState(true);
-  const [, setError] = useState("");
-
-  const toggleAccount = () => setNewAccount(!newAccount);
-
+  // HTML
   return (
-    <div>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          let data;
-          try {
-            if (newAccount) {
-              //Create Accout
-              data = await authService.createUserWithEmailAndPassword(
-                email,
-                password
-              );
-            } else {
-              //Login
-              data = await authService.signInWithEmailAndPassword(
-                email,
-                password
-              );
-            }
-            console.log(data);
-          } catch (error) {
-            console.log(error.message);
-            setError(error.message);
-          }
-        }}
-      >
-        <input
-          name="email"
-          type="text"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input type="submit" value={newAccount ? "Create Account" : "Log In"} />
-      </form>
-      <span onClick={toggleAccount}>
-        {newAccount ? "Sign In" : "Create Account"}
-      </span>
-      <div>
+    <div className="authContainer">
+      <FontAwesomeIcon
+        icon={faTwitter}
+        color={"#04AAFF"}
+        size="3x"
+        style={{ marginBottom: 30 }}
+      />
+      <AuthForm />
+      <div className="authBtns">
         <button
           name="google"
           onClick={async (e) => {
             const provider = new firebaseInstance.auth.GoogleAuthProvider();
             await authService.signInWithPopup(provider);
           }}
+          className="authBtn"
         >
           Continue with Google
+          <FontAwesomeIcon icon={faGoogle} />
         </button>
         <button
           name="github"
@@ -73,8 +37,10 @@ const Auth = () => {
             const provider = new firebaseInstance.auth.GithubAuthProvider();
             await authService.signInWithPopup(provider);
           }}
+          className="authBtn"
         >
           Continue with Github
+          <FontAwesomeIcon icon={faGithub} />
         </button>
       </div>
     </div>

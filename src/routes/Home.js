@@ -1,25 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { dbService, storageService } from "../fbase";
+import { dbService } from "../fbase";
 import Nweet from "../components/Nweet";
+import CreateNweet from "../components/CreateNweet";
 
 const Home = ({ userObj }) => {
-  const [nweet, setNweet] = useState("");
   const [nweets, setNweets] = useState([]);
-  const [fileURL, setFileURL] = useState("");
 
   useEffect(() => {
-    async function getNweets() {
-      const data = await dbService.collection("nweets").get();
-      data.forEach((document) => {
-        const nweetObject = {
-          ...document.data(),
-          id: document.id,
-        };
-        setNweets((prev) => [nweetObject, ...prev]);
-      });
-    }
-    getNweets();
     dbService.collection("nweets").onSnapshot((snapshot) => {
       const nweetArray = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -29,64 +16,11 @@ const Home = ({ userObj }) => {
     });
   }, []);
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    let downloadUrl = "";
-    if (fileURL !== "") {
-      const fileRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`);
-      const res = await fileRef.putString(fileURL, "DATA_URL");
-      downloadUrl = await res.ref.getDownloadURL();
-    }
-    const nweetObj = {
-      text: nweet,
-      createdAt: Date.now(),
-      creatorId: userObj.uid,
-      downloadUrl,
-    };
-    await dbService.collection("nweets").add(nweetObj);
-    setNweet("");
-    setFileURL("");
-  };
-
+  // HTML
   return (
-    <>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="What's on your mind?"
-          maxLength={120}
-          value={nweet}
-          onChange={(e) => {
-            setNweet(e.target.value);
-          }}
-        />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onloadend = (finishedEvent) => {
-              setFileURL(finishedEvent.currentTarget.result);
-            };
-            reader.readAsDataURL(file);
-          }}
-        />
-        <input type="submit" value="Nweet" />
-        {fileURL && (
-          <div>
-            <img src={fileURL} width="50px" height="50px" alt="Thumbnail" />
-            <button
-              onClick={(e) => {
-                setFileURL("");
-              }}
-            >
-              Clear
-            </button>
-          </div>
-        )}
-      </form>
-      <div>
+    <div className="container">
+      <CreateNweet userObj={userObj} />
+      <div style={{ marginTop: 30 }}>
         {nweets.map((nweet) => (
           <Nweet
             key={nweet.id}
@@ -95,7 +29,7 @@ const Home = ({ userObj }) => {
           />
         ))}
       </div>
-    </>
+    </div>
   );
 };
 
